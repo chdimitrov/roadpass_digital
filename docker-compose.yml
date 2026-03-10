@@ -19,7 +19,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    command: bundle exec rails server -b 0.0.0.0
+    command: bash -c "bin/setup --skip-server --skip-dependencies && bundle exec rails server -b 0.0.0.0"
     ports:
       - "3000:3000"
     depends_on:
