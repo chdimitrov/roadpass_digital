@@ -1,7 +1,12 @@
 # README
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+# Local development
+
+## build and start containers
+```bash
+docker compose up --build
+```
+
 
 Things you may want to cover:
 
