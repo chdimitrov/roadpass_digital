@@ -7,6 +7,16 @@
 docker compose up --build
 ```
 
+## running tests
+> Note: Dockerized environment, 
+> if you want to execute commands from outside the container, you should
+> prefix command with ```docker compose exec app``` 
+
+```bash
+bundle exec rails test
+bundle exec rake test
+bundle exec rake
+```
 
 Things you may want to cover:
 
