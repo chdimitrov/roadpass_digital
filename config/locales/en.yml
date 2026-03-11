@@ -28,4 +28,31 @@
 #       enabled: "ON"
 
 en:
-  hello: "Hello world"
+  activerecord:
+    attributes:
+      trip:
+        name: "Name"
+        image_url: "Image URL"
+        short_description: "Short Description"
+        long_description: "Long Description"
+        rating: "Rating"
+
+    errors:
+      models:
+        trip:
+          attributes:
+            name:
+              too_short: "must be at least %{count} character"
+              too_long: "is too long (maximum is %{count} characters)"
+              taken: "already exists"
+            image_url:
+              invalid: "must be a valid URL starting with http:// or https://"
+              too_long: "is too long (maximum is %{count} characters)"
+            short_description:
+              too_short: "must be at least %{count} characters"
+              too_long: "is too long (maximum is %{count} characters)"
+            long_description:
+              too_short: "must be at least %{count} characters"
+              too_long: "is too long (maximum is %{count} characters)"
+            rating:
+              invalid: "must be an integer between 1 and 5"
