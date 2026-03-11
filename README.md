@@ -13,9 +13,7 @@ docker compose up --build
 > prefix command with ```docker compose exec app``` 
 
 ```bash
-bundle exec rails test
-bundle exec rake test
-bundle exec rake
+bundle exec rspec
 ```
 
 Things you may want to cover:
