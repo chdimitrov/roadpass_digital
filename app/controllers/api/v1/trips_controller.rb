@@ -4,20 +4,28 @@ module Api
       before_action :set_trip, only: :show
 
       def index
-        _pagy, trips = pagy(:offset, Trip.filter(params).result, limit: per_page)
+        pagy, trips = pagy(:offset, Trip.filter(params).result, limit: per_page)
 
-        render json: TripBlueprint.render(trips)
+        render json: {
+          data: TripBlueprint.render_as_hash(trips),
+          meta: {
+            page:        pagy.page,
+            per_page:    pagy.limit,
+            total:       pagy.count,
+            total_pages: pagy.pages
+          }
+        }
       end
 
       def show
-        render json: TripBlueprint.render(@trip)
+        render json: TripBlueprint.render(@trip, view: :show)
       end
 
       def create
         trip = Trip.new(trip_params)
 
         if trip.save
-          render json: TripBlueprint.render(trip), status: :created
+          render json: TripBlueprint.render(trip, view: :show), status: :created
         else
           render json: { errors: trip.errors.full_messages }, status: :unprocessable_content
         end

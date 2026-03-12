@@ -11,14 +11,25 @@ RSpec.describe 'Api::V1::Trips', type: :request do
         get '/api/v1/trips', headers: headers
 
         expect(response).to have_http_status(:ok)
-        expect(json_body.size).to eq(Trip.count)
+        expect(json_body['data'].size).to eq(Trip.count)
       end
 
       it 'returns the expected fields' do
         get '/api/v1/trips', headers: headers
 
-        trip = json_body.first
-        expect(trip.keys).to match_array(%w[id name image_url short_description long_description rating created_at updated_at])
+        trip = json_body['data'].first
+        expect(trip.keys).to match_array(%w[id name image_url short_description rating])
+      end
+
+      it 'returns pagination metadata' do
+        get '/api/v1/trips', headers: headers
+
+        expect(json_body['meta']).to include(
+          'page'        => 1,
+          'per_page'    => 10,
+          'total'       => Trip.count,
+          'total_pages' => 1
+        )
       end
     end
 
@@ -27,7 +38,8 @@ RSpec.describe 'Api::V1::Trips', type: :request do
         get '/api/v1/trips', headers: headers
 
         expect(response).to have_http_status(:ok)
-        expect(json_body).to eq([])
+        expect(json_body['data']).to eq([])
+        expect(json_body['meta']['total']).to eq(0)
       end
     end
 
@@ -42,8 +54,8 @@ RSpec.describe 'Api::V1::Trips', type: :request do
         get '/api/v1/trips', params: { search: 'canyon' }, headers: headers
 
         expect(response).to have_http_status(:ok)
-        expect(json_body.size).to eq(2)
-        expect(json_body.map { |t| t['name'] }).to contain_exactly(
+        expect(json_body['data'].size).to eq(2)
+        expect(json_body['data'].map { |t| t['name'] }).to contain_exactly(
           'Grand Canyon National Park',
           'Zion Canyon National Park'
         )
@@ -53,21 +65,21 @@ RSpec.describe 'Api::V1::Trips', type: :request do
         get '/api/v1/trips', params: { search: 'national park' }, headers: headers
 
         expect(response).to have_http_status(:ok)
-        expect(json_body.size).to eq(3)
+        expect(json_body['data'].size).to eq(3)
       end
 
       it 'returns an empty list when no trips match' do
         get '/api/v1/trips', params: { search: 'everglades' }, headers: headers
 
         expect(response).to have_http_status(:ok)
-        expect(json_body).to eq([])
+        expect(json_body['data']).to eq([])
       end
 
       it 'ignores the search param when blank' do
         get '/api/v1/trips', params: { search: '' }, headers: headers
 
         expect(response).to have_http_status(:ok)
-        expect(json_body.size).to eq(3)
+        expect(json_body['data'].size).to eq(3)
       end
     end
 
@@ -82,22 +94,22 @@ RSpec.describe 'Api::V1::Trips', type: :request do
         get '/api/v1/trips', params: { min_rating: 3 }, headers: headers
 
         expect(response).to have_http_status(:ok)
-        expect(json_body.size).to eq(2)
-        expect(json_body.map { |t| t['rating'] }).to all(be >= 3)
+        expect(json_body['data'].size).to eq(2)
+        expect(json_body['data'].map { |t| t['rating'] }).to all(be >= 3)
       end
 
       it 'returns all trips when min_rating is 1' do
         get '/api/v1/trips', params: { min_rating: 1 }, headers: headers
 
         expect(response).to have_http_status(:ok)
-        expect(json_body.size).to eq(3)
+        expect(json_body['data'].size).to eq(3)
       end
 
       it 'returns an empty list when no trips meet the min_rating' do
         get '/api/v1/trips', params: { min_rating: 6 }, headers: headers
 
         expect(response).to have_http_status(:ok)
-        expect(json_body).to eq([])
+        expect(json_body['data']).to eq([])
       end
     end
 
@@ -112,21 +124,21 @@ RSpec.describe 'Api::V1::Trips', type: :request do
         get '/api/v1/trips', params: { sort: 'asc' }, headers: headers
 
         expect(response).to have_http_status(:ok)
-        expect(json_body.map { |t| t['rating'] }).to eq([1, 3, 5])
+        expect(json_body['data'].map { |t| t['rating'] }).to eq([1, 3, 5])
       end
 
       it 'sorts by rating descending when sort=desc' do
         get '/api/v1/trips', params: { sort: 'desc' }, headers: headers
 
         expect(response).to have_http_status(:ok)
-        expect(json_body.map { |t| t['rating'] }).to eq([5, 3, 1])
+        expect(json_body['data'].map { |t| t['rating'] }).to eq([5, 3, 1])
       end
 
       it 'sorts by name alphabetically by default' do
         get '/api/v1/trips', headers: headers
 
         expect(response).to have_http_status(:ok)
-        expect(json_body.map { |t| t['name'] }).to eq(['Alpha Trip', 'Bravo Trip', 'Charlie Trip'])
+        expect(json_body['data'].map { |t| t['name'] }).to eq(['Alpha Trip', 'Bravo Trip', 'Charlie Trip'])
       end
     end
 
@@ -137,31 +149,42 @@ RSpec.describe 'Api::V1::Trips', type: :request do
         get '/api/v1/trips', headers: headers
 
         expect(response).to have_http_status(:ok)
-        expect(json_body.size).to eq(10)
+        expect(json_body['data'].size).to eq(10)
       end
 
       it 'returns the correct number of trips on the last page' do
         get '/api/v1/trips', params: { page: 2 }, headers: headers
 
         expect(response).to have_http_status(:ok)
-        expect(json_body.size).to eq(5)
+        expect(json_body['data'].size).to eq(5)
       end
 
       it 'respects the per_page param' do
         get '/api/v1/trips', params: { per_page: 5 }, headers: headers
 
         expect(response).to have_http_status(:ok)
-        expect(json_body.size).to eq(5)
+        expect(json_body['data'].size).to eq(5)
       end
 
       it 'returns a different set of trips on page 2' do
         get '/api/v1/trips', params: { page: 1, per_page: 10 }, headers: headers
-        page_one_ids = json_body.map { |t| t['id'] }
+        page_one_ids = json_body['data'].map { |t| t['id'] }
 
         get '/api/v1/trips', params: { page: 2, per_page: 10 }, headers: headers
-        page_two_ids = json_body.map { |t| t['id'] }
+        page_two_ids = json_body['data'].map { |t| t['id'] }
 
         expect(page_one_ids).not_to match_array(page_two_ids)
+      end
+
+      it 'returns correct pagination metadata' do
+        get '/api/v1/trips', params: { page: 2, per_page: 5 }, headers: headers
+
+        expect(json_body['meta']).to include(
+          'page'        => 2,
+          'per_page'    => 5,
+          'total'       => 15,
+          'total_pages' => 3
+        )
       end
     end
   end
