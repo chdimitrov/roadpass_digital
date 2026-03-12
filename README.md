@@ -3,11 +3,12 @@
 # Local development
 
 ## build and start containers
+this will start up application and seed database
 ```bash
 docker compose up --build
 ```
 
-## Seed database
+## Seed database manually
 ```bash
 bundle exec rails db:seed
 ```
@@ -21,23 +22,16 @@ bundle exec rails db:seed
 docker compose exec -e RAILS_ENV=test app bundle exec rspec
 RAILS_ENV=test bundle exec rspec
 ```
+## Trigger job manually
+```bash
+docker compose exec app bundle exec rails runner "TripRatingSummaryJob.perform_later"
+```
 
-Things you may want to cover:
+## Useful commands
+- Linting: ```bundle exec rubocop```
+- Security audit: ```bundle exec brakeman```
+- Gem vulnerability check: ```bundle exec bundler-audit```
+- Console: ```bundle exec rails console```
 
-* Ruby version
-
-* System dependencies
-
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+## Troubleshooting
+- reset everything: ```docker compose down -v```

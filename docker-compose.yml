@@ -14,25 +14,60 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   app:
     build:
       context: .
       dockerfile: Dockerfile.dev
     command: bash -c "bin/setup --skip-server --skip-dependencies && bundle exec rails server -b 0.0.0.0"
-#    command: bash -c "bin/setup --skip-server --skip-dependencies && bundle exec rails server -b 0.0.0.0"
     ports:
       - "3000:3000"
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     environment:
       RAILS_ENV: development
       DB_HOST: db
       DB_USER: postgres
       DB_PASSWORD: postgres
+      REDIS_URL: redis://redis:6379/0
     volumes:
       - .:/rails
+      - bundle_cache:/usr/local/bundle
+    working_dir: /rails
+
+  sidekiq:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: bundle exec sidekiq
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      RAILS_ENV: development
+      DB_HOST: db
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - .:/rails
+      - bundle_cache:/usr/local/bundle
     working_dir: /rails
 
 volumes:
   postgres_data:
+  bundle_cache:
