@@ -15,16 +15,16 @@ Rails.application.configure do
   # Enable server timing.
   config.server_timing = true
 
-  # Enable/disable Action Controller caching. By default Action Controller caching is disabled.
-  # Run rails dev:cache to toggle Action Controller caching.
-  if Rails.root.join("tmp/caching-dev.txt").exist?
-    config.public_file_server.headers = { "cache-control" => "public, max-age=#{2.days.to_i}" }
-  else
-    config.action_controller.perform_caching = false
-  end
-
-  # Change to :null_store to avoid any caching.
-  config.cache_store = :memory_store
+  # Enable/disable Action Controller caching. Caching is always on in development
+  # because Redis is available via docker-compose.
+  config.action_controller.perform_caching = true
+  config.cache_store = :redis_cache_store, {
+    url: ENV.fetch("REDIS_URL", "redis://localhost:6379/0").sub(/\/\d+$/, "/1"),
+    expires_in: 1.hour,
+    error_handler: ->(method:, returning:, exception:) {
+      Rails.logger.warn "RedisCache #{method} failed: #{exception.message}"
+    }
+  }
 
   # Store uploaded files on the local file system (see config/storage.yml for options).
   config.active_storage.service = :local

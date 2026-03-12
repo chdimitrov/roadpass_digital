@@ -4,6 +4,58 @@ RSpec.describe 'Api::V1::Trips', type: :request do
   let(:headers) { { 'Content-Type' => 'application/json', 'Accept' => 'application/json' } }
 
   describe 'GET /api/v1/trips' do
+    context 'HTTP caching' do
+      before do
+        Rails.cache.clear
+        create_list(:trip, 3)
+      end
+
+      it 'returns an ETag header' do
+        get '/api/v1/trips', headers: headers
+
+        expect(response.headers['ETag']).to be_present
+      end
+
+      it 'returns a Cache-Control header with public and max-age' do
+        get '/api/v1/trips', headers: headers
+
+        cache_control = response.headers['Cache-Control']
+        expect(cache_control).to include('public')
+        expect(cache_control).to match(/max-age=\d+/)
+      end
+
+      it 'returns 304 Not Modified when the client sends a matching ETag' do
+        get '/api/v1/trips', headers: headers
+        etag = response.headers['ETag']
+
+        get '/api/v1/trips', headers: headers.merge('If-None-Match' => etag)
+
+        expect(response).to have_http_status(:not_modified)
+      end
+
+      it 'returns a 200 with a new ETag after a trip is created' do
+        get '/api/v1/trips', headers: headers
+        original_etag = response.headers['ETag']
+
+        create(:trip)
+
+        get '/api/v1/trips', headers: headers.merge('If-None-Match' => original_etag)
+
+        expect(response).to have_http_status(:ok)
+        expect(response.headers['ETag']).not_to eq(original_etag)
+      end
+
+      it 'returns different ETags for different query params' do
+        get '/api/v1/trips', params: { sort: 'asc' }, headers: headers
+        etag_asc = response.headers['ETag']
+
+        get '/api/v1/trips', params: { sort: 'desc' }, headers: headers
+        etag_desc = response.headers['ETag']
+
+        expect(etag_asc).not_to eq(etag_desc)
+      end
+    end
+
     context 'when trips exist' do
       before { create_list(:trip, 3) }
 

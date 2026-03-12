@@ -63,4 +63,3 @@ RSpec.describe TripRatingSummaryJob, type: :job do
     end
   end
 end
-

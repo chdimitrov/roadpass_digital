@@ -23,4 +23,3 @@ class TripRatingSummaryJob < ApplicationJob
     Rails.logger.info lines.join("\n")
   end
 end
-
