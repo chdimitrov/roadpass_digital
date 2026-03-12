@@ -10,9 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_10_220244) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_12_015755) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+  enable_extension "pg_trgm"
 
   create_table "trips", force: :cascade do |t|
     t.datetime "created_at", null: false
@@ -22,7 +23,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_10_220244) do
     t.integer "rating", null: false
     t.string "short_description", null: false
     t.datetime "updated_at", null: false
-    t.index ["name"], name: "index_trips_on_name", unique: true
+    t.index "lower((name)::text)", name: "index_trips_on_lower_name", unique: true
+    t.index ["name"], name: "index_trips_on_name"
+    t.index ["name"], name: "index_trips_on_name_trigram", opclass: :gin_trgm_ops, using: :gin
     t.index ["rating"], name: "index_trips_on_rating"
   end
 end

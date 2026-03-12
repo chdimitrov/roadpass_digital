@@ -187,6 +187,36 @@ RSpec.describe 'Api::V1::Trips', type: :request do
         )
       end
     end
+
+    context 'with all params combined' do
+      before do
+        create(:trip, name: 'Grand Canyon National Park', rating: 5)
+        create(:trip, name: 'Zion Canyon National Park', rating: 4)
+        create(:trip, name: 'Bryce Canyon National Park', rating: 3)
+        create(:trip, name: 'Canyon de Chelly', rating: 2)
+        create(:trip, name: 'Yellowstone National Park', rating: 5)
+      end
+
+      it 'applies search, min_rating, sort and pagination together' do
+        get '/api/v1/trips', params: { search: 'canyon', min_rating: 3, sort: 'desc', page: 1, per_page: 2 }, headers: headers
+
+        expect(response).to have_http_status(:ok)
+
+        names = json_body['data'].map { |t| t['name'] }
+        ratings = json_body['data'].map { |t| t['rating'] }
+
+        expect(names).to all(match(/canyon/i))
+        expect(ratings).to all(be >= 3)
+        expect(ratings).to eq(ratings.sort.reverse)
+        expect(json_body['data'].size).to eq(2)
+        expect(json_body['meta']).to include(
+          'page'        => 1,
+          'per_page'    => 2,
+          'total'       => 3,
+          'total_pages' => 2
+        )
+      end
+    end
   end
 
   describe 'GET /api/v1/trips/:id' do
