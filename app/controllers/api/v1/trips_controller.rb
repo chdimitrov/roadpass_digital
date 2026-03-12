@@ -29,9 +29,6 @@ module Api
       end
 
       def show
-        return unless stale?(@trip, public: true)
-
-        response.set_header("Cache-Control", "public, max-age=300")
         render json: TripBlueprint.render(@trip, view: :show)
       end
 
