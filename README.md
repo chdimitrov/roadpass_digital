@@ -1,4 +1,4 @@
-# README
+# Roadpass digital Back-end — Candidate Project
 
 # Local development
 
@@ -42,4 +42,3 @@ docker compose exec app bundle exec rails runner "TripRatingSummaryJob.perform_l
 - No rate limiting — nothing stops someone from hammering the API with thousands of requests per second.
 - Can't update or delete a trip — the API only has index, show, and create. There are no PUT /trips/:id or DELETE /trips/:id endpoints.
 - Search is name-only — the search param only looks inside the trip name. It could also search the short or long description.
-- 
