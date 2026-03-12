@@ -35,3 +35,11 @@ docker compose exec app bundle exec rails runner "TripRatingSummaryJob.perform_l
 
 ## Troubleshooting
 - reset everything: ```docker compose down -v```
+
+## Further to improve
+- No authentication — anyone on the internet can call POST /api/v1/trips and create trips.
+- Sidekiq dashboard is wide open — /sidekiq is mounted with no password. In production, anybody could see and control your background jobs. It needs at minimum HTTP Basic Auth.
+- No rate limiting — nothing stops someone from hammering the API with thousands of requests per second.
+- Can't update or delete a trip — the API only has index, show, and create. There are no PUT /trips/:id or DELETE /trips/:id endpoints.
+- Search is name-only — the search param only looks inside the trip name. It could also search the short or long description.
+- 
