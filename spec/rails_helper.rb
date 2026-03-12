@@ -27,7 +27,7 @@ end
 
 RSpec.configure do |config|
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
-  config.fixture_paths = [Rails.root.join('spec', 'fixtures').to_s]
+  config.fixture_paths = [ Rails.root.join('spec', 'fixtures').to_s ]
 
   # If you're not using ActiveRecord, or you'd prefer not to run each of your
   # examples within a transaction, remove the following line or assign false
@@ -66,4 +66,3 @@ Shoulda::Matchers.configure do |config|
     with.library :rails
   end
 end
-

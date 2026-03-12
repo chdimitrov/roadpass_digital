@@ -124,21 +124,21 @@ RSpec.describe 'Api::V1::Trips', type: :request do
         get '/api/v1/trips', params: { sort: 'asc' }, headers: headers
 
         expect(response).to have_http_status(:ok)
-        expect(json_body['data'].map { |t| t['rating'] }).to eq([1, 3, 5])
+        expect(json_body['data'].map { |t| t['rating'] }).to eq([ 1, 3, 5 ])
       end
 
       it 'sorts by rating descending when sort=desc' do
         get '/api/v1/trips', params: { sort: 'desc' }, headers: headers
 
         expect(response).to have_http_status(:ok)
-        expect(json_body['data'].map { |t| t['rating'] }).to eq([5, 3, 1])
+        expect(json_body['data'].map { |t| t['rating'] }).to eq([ 5, 3, 1 ])
       end
 
       it 'sorts by name alphabetically by default' do
         get '/api/v1/trips', headers: headers
 
         expect(response).to have_http_status(:ok)
-        expect(json_body['data'].map { |t| t['name'] }).to eq(['Alpha Trip', 'Bravo Trip', 'Charlie Trip'])
+        expect(json_body['data'].map { |t| t['name'] }).to eq([ 'Alpha Trip', 'Bravo Trip', 'Charlie Trip' ])
       end
     end
 

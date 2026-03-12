@@ -1,5 +1,5 @@
 class Trip < ApplicationRecord
-  SORT_OPTIONS = { 'asc' => 'rating asc', 'desc' => 'rating desc' }.freeze
+  SORT_OPTIONS = { "asc" => "rating asc", "desc" => "rating desc" }.freeze
 
   validates :name,
             presence: true,
@@ -33,7 +33,7 @@ class Trip < ApplicationRecord
     ransack(
       name_cont: params[:search],
       rating_gteq: params[:min_rating],
-      s: SORT_OPTIONS.fetch(params[:sort].to_s, 'name asc')
+      s: SORT_OPTIONS.fetch(params[:sort].to_s, "name asc")
     )
   end
 

@@ -12,4 +12,3 @@ data['trips'].each do |trip_data|
 end
 
 puts "Seeded #{Trip.count} trips"
-

@@ -7,8 +7,3 @@ FactoryBot.define do
     rating { rand(1..5) }
   end
 end
-
-
-
-
-
