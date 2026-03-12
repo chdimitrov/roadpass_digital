@@ -70,6 +70,100 @@ RSpec.describe 'Api::V1::Trips', type: :request do
         expect(json_body.size).to eq(3)
       end
     end
+
+    context 'with min_rating param' do
+      before do
+        create(:trip, name: 'Low Rated Trip', rating: 2)
+        create(:trip, name: 'Mid Rated Trip', rating: 3)
+        create(:trip, name: 'High Rated Trip', rating: 5)
+      end
+
+      it 'returns only trips with rating >= min_rating' do
+        get '/api/v1/trips', params: { min_rating: 3 }, headers: headers
+
+        expect(response).to have_http_status(:ok)
+        expect(json_body.size).to eq(2)
+        expect(json_body.map { |t| t['rating'] }).to all(be >= 3)
+      end
+
+      it 'returns all trips when min_rating is 1' do
+        get '/api/v1/trips', params: { min_rating: 1 }, headers: headers
+
+        expect(response).to have_http_status(:ok)
+        expect(json_body.size).to eq(3)
+      end
+
+      it 'returns an empty list when no trips meet the min_rating' do
+        get '/api/v1/trips', params: { min_rating: 6 }, headers: headers
+
+        expect(response).to have_http_status(:ok)
+        expect(json_body).to eq([])
+      end
+    end
+
+    context 'with sort param' do
+      before do
+        create(:trip, name: 'Bravo Trip', rating: 3)
+        create(:trip, name: 'Alpha Trip', rating: 5)
+        create(:trip, name: 'Charlie Trip', rating: 1)
+      end
+
+      it 'sorts by rating ascending when sort=asc' do
+        get '/api/v1/trips', params: { sort: 'asc' }, headers: headers
+
+        expect(response).to have_http_status(:ok)
+        expect(json_body.map { |t| t['rating'] }).to eq([1, 3, 5])
+      end
+
+      it 'sorts by rating descending when sort=desc' do
+        get '/api/v1/trips', params: { sort: 'desc' }, headers: headers
+
+        expect(response).to have_http_status(:ok)
+        expect(json_body.map { |t| t['rating'] }).to eq([5, 3, 1])
+      end
+
+      it 'sorts by name alphabetically by default' do
+        get '/api/v1/trips', headers: headers
+
+        expect(response).to have_http_status(:ok)
+        expect(json_body.map { |t| t['name'] }).to eq(['Alpha Trip', 'Bravo Trip', 'Charlie Trip'])
+      end
+    end
+
+    context 'with pagination params' do
+      before { create_list(:trip, 15) }
+
+      it 'returns 10 trips per page by default' do
+        get '/api/v1/trips', headers: headers
+
+        expect(response).to have_http_status(:ok)
+        expect(json_body.size).to eq(10)
+      end
+
+      it 'returns the correct number of trips on the last page' do
+        get '/api/v1/trips', params: { page: 2 }, headers: headers
+
+        expect(response).to have_http_status(:ok)
+        expect(json_body.size).to eq(5)
+      end
+
+      it 'respects the per_page param' do
+        get '/api/v1/trips', params: { per_page: 5 }, headers: headers
+
+        expect(response).to have_http_status(:ok)
+        expect(json_body.size).to eq(5)
+      end
+
+      it 'returns a different set of trips on page 2' do
+        get '/api/v1/trips', params: { page: 1, per_page: 10 }, headers: headers
+        page_one_ids = json_body.map { |t| t['id'] }
+
+        get '/api/v1/trips', params: { page: 2, per_page: 10 }, headers: headers
+        page_two_ids = json_body.map { |t| t['id'] }
+
+        expect(page_one_ids).not_to match_array(page_two_ids)
+      end
+    end
   end
 
   describe 'GET /api/v1/trips/:id' do

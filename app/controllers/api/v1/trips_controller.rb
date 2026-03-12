@@ -4,8 +4,9 @@ module Api
       before_action :set_trip, only: :show
 
       def index
-        q = Trip.ransack(name_cont: params[:search])
-        render json: TripBlueprint.render(q.result)
+        _pagy, trips = pagy(:offset, Trip.filter(params).result, limit: per_page)
+
+        render json: TripBlueprint.render(trips)
       end
 
       def show

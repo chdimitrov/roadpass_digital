@@ -1,4 +1,6 @@
 class Trip < ApplicationRecord
+  SORT_OPTIONS = { 'asc' => 'rating asc', 'desc' => 'rating desc' }.freeze
+
   validates :name,
             presence: true,
             length: { minimum: 1, maximum: 255 },
@@ -27,7 +29,15 @@ class Trip < ApplicationRecord
               less_than_or_equal_to: 5
             }
 
+  def self.filter(params)
+    ransack(
+      name_cont: params[:search],
+      rating_gteq: params[:min_rating],
+      s: SORT_OPTIONS.fetch(params[:sort].to_s, 'name asc')
+    )
+  end
+
   def self.ransackable_attributes(_auth_object = nil)
-    %w[name]
+    %w[name rating]
   end
 end
