@@ -35,7 +35,7 @@ gem "pagy"
 
 # Background jobs
 gem "connection_pool", "~> 2.4"
-gem "sidekiq", "~> 7.0"
+gem "sidekiq", "~> 8.0"
 gem "sidekiq-cron", "~> 1.12"
 gem "redis", ">= 4.0.1"
 
