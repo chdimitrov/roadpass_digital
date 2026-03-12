@@ -18,7 +18,8 @@ bundle exec rails db:seed
 > prefix command with ```docker compose exec app``` 
 
 ```bash
-bundle exec rspec
+docker compose exec -e RAILS_ENV=test app bundle exec rspec
+RAILS_ENV=test bundle exec rspec
 ```
 
 Things you may want to cover:

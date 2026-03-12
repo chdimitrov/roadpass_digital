@@ -26,4 +26,8 @@ class Trip < ApplicationRecord
               greater_than_or_equal_to: 1,
               less_than_or_equal_to: 5
             }
+
+  def self.ransackable_attributes(_auth_object = nil)
+    %w[name]
+  end
 end

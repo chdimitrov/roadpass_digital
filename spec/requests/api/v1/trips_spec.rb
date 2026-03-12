@@ -23,13 +23,51 @@ RSpec.describe 'Api::V1::Trips', type: :request do
     end
 
     context 'when no trips exist' do
-      before { Trip.delete_all }
-
       it 'returns 200 with an empty list' do
         get '/api/v1/trips', headers: headers
 
         expect(response).to have_http_status(:ok)
         expect(json_body).to eq([])
+      end
+    end
+
+    context 'with search param' do
+      before do
+        create(:trip, name: 'Grand Canyon National Park')
+        create(:trip, name: 'Yellowstone National Park')
+        create(:trip, name: 'Zion Canyon National Park')
+      end
+
+      it 'returns only trips matching the search term (case-insensitive)' do
+        get '/api/v1/trips', params: { search: 'canyon' }, headers: headers
+
+        expect(response).to have_http_status(:ok)
+        expect(json_body.size).to eq(2)
+        expect(json_body.map { |t| t['name'] }).to contain_exactly(
+          'Grand Canyon National Park',
+          'Zion Canyon National Park'
+        )
+      end
+
+      it 'returns all trips when search term matches all' do
+        get '/api/v1/trips', params: { search: 'national park' }, headers: headers
+
+        expect(response).to have_http_status(:ok)
+        expect(json_body.size).to eq(3)
+      end
+
+      it 'returns an empty list when no trips match' do
+        get '/api/v1/trips', params: { search: 'everglades' }, headers: headers
+
+        expect(response).to have_http_status(:ok)
+        expect(json_body).to eq([])
+      end
+
+      it 'ignores the search param when blank' do
+        get '/api/v1/trips', params: { search: '' }, headers: headers
+
+        expect(response).to have_http_status(:ok)
+        expect(json_body.size).to eq(3)
       end
     end
   end

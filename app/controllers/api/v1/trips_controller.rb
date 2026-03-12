@@ -4,8 +4,8 @@ module Api
       before_action :set_trip, only: :show
 
       def index
-        trips = Trip.all
-        render json: TripBlueprint.render(trips)
+        q = Trip.ransack(name_cont: params[:search])
+        render json: TripBlueprint.render(q.result)
       end
 
       def show
